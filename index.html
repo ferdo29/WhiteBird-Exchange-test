@@ -17,7 +17,6 @@
     #wbExchangeSdkWrapper {
         width: 100%;
         min-width: 360px;
-        /* height: 100vh; */
         height: 100%;
         background: #fff;
     }
@@ -27,50 +26,6 @@
   <div id="wbExchangeSdkWrapper"></div>
 
   <script src="https://sdk.dev.wbdevel.net/v2.0/integration/wbExchangeSdk-v001.js"></script>
-  <script>
-    const MERCHANT_ID = "11111111-1111-1111-1111-111111111111";
-    const MERCHANT_PASS = "xxxx";
-
-    wbExchangeSdk.setup({
-      el: document.getElementById("wbExchangeSdkWrapper"),
-      mode: wbExchangeSdk.mode.LoginMode,
-      merchantId: MERCHANT_ID,
-      merchantPass: MERCHANT_PASS,
-
-      onUserData: ({ email, accessToken, refreshToken }) => {
-        handleUserData({ email, accessToken, refreshToken });
-      },
-
-      onOrderCreated: ({ orderId, internalCryptoAddress }) => {
-        console.log("order created:", orderId);
-      },
-      onPayment: ({ transactionId, orderId }) => {
-        console.log("payment started:", orderId, transactionId);
-      },
-      onOrderCompleted: ({ orderId, status }) => {
-        console.log("order completed:", orderId, status);
-      },
-
-      showBackButtonOnHomePage: true,
-      onExit: () => {
-        wbExchangeSdk.cleanup();
-        history.back();
-      },
-
-    });
-
-    function handleUserData({ email, accessToken, refreshToken }) {
-      // Пример: передать сессию своему бэкенду
-      // fetch("/api/session", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ email, accessToken, refreshToken }),
-      // });
-    }
-
-    window.addEventListener("pagehide", () => {
-      try { wbExchangeSdk.cleanup(); } catch (_) {}
-    });
-  </script>
+  <script src="/main.js"></script>
 </body>
 </html>
