@@ -87,8 +87,8 @@ window.wbShowError = (code) =>
 async function init() {
   if (!wrapper) return showError(ERROR.NO_WRAPPER, "нет #wbExchangeSdkWrapper");
 
-  // if (window.__sdkLoadError)
-  //   return showError(ERROR.SDK_LOAD_FAILED, "скрипт SDK не загрузился");
+  if (window.__sdkLoadError)
+    return showError(ERROR.SDK_LOAD_FAILED, "скрипт SDK не загрузился");
 
   const sdk = window.wbExchangeSdk;
   if (!sdk) return showError(ERROR.SDK_NOT_FOUND, "wbExchangeSdk не найден");
@@ -103,11 +103,11 @@ async function init() {
     return showError(ERROR.CONFIG_FAILED, e);
   }
 
-  // try {
-  //   await pingSdk();
-  // } catch (e) {
-  //   return showError(ERROR.SDK_UNREACHABLE, e);
-  // }
+  try {
+    await pingSdk();
+  } catch (e) {
+    return showError(ERROR.SDK_UNREACHABLE, e);
+  }
 
   try {
     sdk.setup({
