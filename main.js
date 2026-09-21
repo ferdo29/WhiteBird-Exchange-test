@@ -1,72 +1,71 @@
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const hasAndroid = typeof window.Android !== "undefined";
+const toJson = (data) => JSON.stringify(data ?? null);
 
-(async () => {
-  await sleep(10_000) // ожидаем
-  console.log(5000 + 'asidfhnb')
+const calls = {
+  config: () => JSON.parse(Android.config()),
+  onExit: () => Android.onExit(),
+  onOrderCreated: (data) => Android.onOrderCreated(toJson(data)),
+  onOrderCompleted: (data) => Android.onOrderCompleted(toJson(data)),
+  onPayment: (data) => Android.onPayment(toJson(data)),
+  onUserData: (data) => Android.onUserData(toJson(data)),
+};
 
+const root = document.getElementById("json");
+const wrapper = document.getElementById("wbExchangeSdkWrapper");
 
-  const hasAndroid = typeof window.Android !== "undefined";
-  const toJson = (data) => JSON.stringify(data ?? null);
+function errorBox(message, color) {
+  if (color) root.style.background = color;
+  root.style.display = "flex";
+  if (wrapper) wrapper.style.display = "none";
+  root.textContent = "Error: " + message;
+}
 
-  const calls = {
-    config: () => JSON.parse(Android.config()),
-    onExit: () => Android.onExit(),
-    onOrderCreated: (data) => Android.onOrderCreated(toJson(data)),
-    onOrderCompleted: (data) => Android.onOrderCompleted(toJson(data)),
-    onPayment: (data) => Android.onPayment(toJson(data)),
-    onUserData: (data) => Android.onUserData(toJson(data)),
-  };
+function init() {
+  if (!wrapper) return errorBox("нет #wbExchangeSdkWrapper");
 
-  const root = document.getElementById("json");
-  const wrapper = document.getElementById("wbExchangeSdkWrapper");
+  if (window.__sdkLoadError)
+    return errorBox("скрипт SDK не загрузился (сеть/домен)");
 
-  function errorBox(message, color) {
-    if (color) root.style.background = color;
-    root.style.display = "flex";
-    if (wrapper) wrapper.style.display = "none";
-    root.textContent = "Error: " + message;
+  const sdk = window.wbExchangeSdk;
+  if (!sdk) {
+    const candidates = Object.keys(window).filter((k) =>
+      /wb|exchange/i.test(k),
+    );
+    return errorBox(
+      "wbExchangeSdk не найден. Похожие глобальные: " +
+        (candidates.join(", ") || "нет"),
+    );
   }
 
-  function init() {
-    if (!wrapper) return errorBox("нет #wbExchangeSdkWrapper");
+  if (!hasAndroid)
+    return errorBox("нет window.Android (страница открыта не в WebView?)");
 
-    if (window.__sdkLoadError) return errorBox("скрипт SDK не загрузился (сеть/домен)");
-
-    const sdk = window.wbExchangeSdk;
-    if (!sdk) {
-      const candidates = Object.keys(window).filter((k) => /wb|exchange/i.test(k));
-      return errorBox("wbExchangeSdk не найден. Похожие глобальные: " + (candidates.join(", ") || "нет"));
-    }
-
-    if (!hasAndroid) return errorBox("нет window.Android (страница открыта не в WebView?)");
-
-    let config;
-    try {
-      config = calls.config();
-    } catch (e) {
-      return errorBox("Android.config(): " + e.message);
-    }
-
-    sdk.setup({
-      el: wrapper,
-      mode: sdk.mode.LoginMode,
-
-      onUserData: calls.onUserData,
-      onOrderCreated: calls.onOrderCreated,
-      onPayment: calls.onPayment,
-      onOrderCompleted: calls.onOrderCompleted,
-      
-      onExit: () => {
-        sdk.cleanup();
-        calls.onExit();
-      },
-      ...config,
-    });
-  }
-
+  let config;
   try {
-    init();
+    config = calls.config();
   } catch (e) {
-    errorBox(e.message);
+    return errorBox("Android.config(): " + e.message);
   }
-})()
+
+  sdk.setup({
+    el: wrapper,
+    mode: sdk.mode.LoginMode,
+
+    onUserData: calls.onUserData,
+    onOrderCreated: calls.onOrderCreated,
+    onPayment: calls.onPayment,
+    onOrderCompleted: calls.onOrderCompleted,
+
+    onExit: () => {
+      sdk.cleanup();
+      calls.onExit();
+    },
+    ...config,
+  });
+}
+
+try {
+  init();
+} catch (e) {
+  errorBox(e.message);
+}
