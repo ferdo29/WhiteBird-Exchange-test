@@ -47,6 +47,9 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
       return errorBox("Android.config(): " + e.message);
     }
 
+    const { merchantId, merchantPass, ...other } = config
+    console.log(JSON.stringify(other, null, 4))
+
     sdk.setup({
       el: wrapper,
       mode: sdk.mode.LoginMode,
