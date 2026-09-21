@@ -68,7 +68,7 @@ function showError(code, details) {
 // иначе WebView покажет внутри него свою страницу "Не удалось открыть веб-страницу".
 async function pingSdk() {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), PING_TIMEOUT_MS);
+  // const timer = setTimeout(() => controller.abort(), PING_TIMEOUT_MS);
   try {
     await fetch(SDK_ORIGIN + "/v2.0/", {
       mode: "no-cors",
@@ -76,7 +76,7 @@ async function pingSdk() {
       signal: controller.signal,
     });
   } finally {
-    clearTimeout(timer);
+    // clearTimeout(timer);
   }
 }
 
