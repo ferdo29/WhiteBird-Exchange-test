@@ -47,27 +47,20 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
       return errorBox("Android.config(): " + e.message);
     }
 
-    const { merchantId, merchantPass, ...other } = config
-    console.log(JSON.stringify(other, null, 4))
-
     sdk.setup({
       el: wrapper,
       mode: sdk.mode.LoginMode,
-      merchantId: config.merchantId,
-      merchantPass: config.merchantPass,
 
       onUserData: calls.onUserData,
       onOrderCreated: calls.onOrderCreated,
       onPayment: calls.onPayment,
       onOrderCompleted: calls.onOrderCompleted,
-
-      showBackButtonOnHomePage: config.showBackButtonOnHomePage,
+      
       onExit: () => {
         sdk.cleanup();
         calls.onExit();
       },
-
-      debug: config.debug,
+      ...config,
     });
   }
 
