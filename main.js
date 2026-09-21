@@ -19,7 +19,12 @@ const ERROR = {
   NO_ANDROID: 1004,
   CONFIG_FAILED: 1005,
   SETUP_FAILED: 1006,
+  SDK_UNREACHABLE: 1007,
+  FRAME_LOAD_FAILED: 1008,
 };
+
+const SDK_ORIGIN = "https://sdk.dev.wbdevel.net";
+const PING_TIMEOUT_MS = 10000;
 
 const wrapper = document.getElementById("wbExchangeSdkWrapper");
 
@@ -59,7 +64,27 @@ function showError(code, details) {
   container.querySelector('[data-action="close"]').onclick = closeApp;
 }
 
-function init() {
+// Проверяем, что сервер SDK отвечает, до создания iframe —
+// иначе WebView покажет внутри него свою страницу "Не удалось открыть веб-страницу".
+async function pingSdk() {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PING_TIMEOUT_MS);
+  try {
+    await fetch(SDK_ORIGIN + "/v2.0/", {
+      mode: "no-cors",
+      cache: "no-store",
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Вызывается из Android (WebViewClient.onReceivedError), если iframe SDK не загрузился.
+window.wbShowError = (code) =>
+  showError(code || ERROR.FRAME_LOAD_FAILED, "ошибка загрузки (native)");
+
+async function init() {
   if (!wrapper) return showError(ERROR.NO_WRAPPER, "нет #wbExchangeSdkWrapper");
 
   if (window.__sdkLoadError)
@@ -76,6 +101,12 @@ function init() {
     config = calls.config();
   } catch (e) {
     return showError(ERROR.CONFIG_FAILED, e);
+  }
+
+  try {
+    await pingSdk();
+  } catch (e) {
+    return showError(ERROR.SDK_UNREACHABLE, e);
   }
 
   try {
@@ -99,8 +130,4 @@ function init() {
   }
 }
 
-try {
-  init();
-} catch (e) {
-  showError(ERROR.UNKNOWN, e);
-}
+init().catch((e) => showError(ERROR.UNKNOWN, e));
