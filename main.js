@@ -1,6 +1,11 @@
 const hasAndroid = typeof window.Android !== "undefined";
 const toJson = (data) => JSON.stringify(data ?? null);
-
+await new Promise((resolve) => {
+  setTimeout(() => {
+    resolve()
+  }, 10 * 1000)
+})
+console.log(5000 + 'asidfhnb')
 const calls = {
   config: () => JSON.parse(Android.config()),
   onExit: () => Android.onExit(),
